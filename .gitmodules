@@ -1,0 +1,3 @@
+[submodule "include/ism330dhcx"]
+	path = include/ism330dhcx
+	url = https://github.com/ozarrai/esp32-ism330dhcx
