@@ -20,8 +20,8 @@ namespace imu
         bool accel = true;
         bool gyro = true;
 
-        bool accelKalman = true;
-        bool gyroKalman = true;
+        bool accelKalman = false;
+        bool gyroKalman = false;
 
         constexpr IMUConfig(lsm6ds_accel_range_t la_fs_ = LSM6DS_ACCEL_RANGE_8_G,
                             lsm6ds_gyro_range_t gyro_fs_ = LSM6DS_GYRO_RANGE_2000_DPS,

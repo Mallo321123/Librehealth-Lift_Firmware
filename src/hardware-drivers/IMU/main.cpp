@@ -8,11 +8,11 @@
 
 class IMUSensor
 {
+private:
     Adafruit_ISM330DHCX ism330dhcx;
 
     imu::State state = imu::State::Uninitialized;
 
-private:
     unsigned long last_accel_read = 0;
     unsigned long last_gyro_read = 0;
 
@@ -178,7 +178,11 @@ private:
     }
 
 public:
-    IMUSensor(hardware::SPIBusConfig spiConfig = hardware::SPI_DEFAULT)
+    IMUSensor()
+    {
+    }
+
+    bool beggin(hardware::SPIBusConfig spiConfig = hardware::SPI_DEFAULT)
     {
         Serial.println("Initializing IMU...");
         ism330dhcx = Adafruit_ISM330DHCX();
@@ -186,13 +190,14 @@ public:
         {
             Serial.println("Failed to initialize IMU!");
             state = imu::State::Uninitialized;
-            return;
+            return false;
         }
         Serial.println("IMU initialized!");
 
         state = imu::State::Initialized;
         applyConfig();
         state = imu::State::Ready;
+        return true;
     }
 
     imu::IMUReport update()

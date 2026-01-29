@@ -16,14 +16,33 @@ namespace hardware
         int8_t sclk; // SCLK Pin (GPIO)
         int8_t cs;   // Chip Select Pin (GPIO)
 
-        constexpr SPIBusConfig(int8_t mosi_ = 11,
+        constexpr SPIBusConfig(int8_t mosi_ = 47,
                                int8_t miso_ = 45,
                                int8_t sclk_ = 48,
-                               int8_t cs_ = 5) noexcept
+                               int8_t cs_ = 42) noexcept
             : mosi(mosi_), miso(miso_), sclk(sclk_), cs(cs_) {}
     };
 
+    struct SDCardConfig
+    {
+        int8_t clk; // SCK Pin (GPIO)
+        int8_t cmd; // CMD Pin (GPIO)
+        int8_t d0;  // D0 Pin (GPIO)
+        int8_t d1;  // D1 Pin (GPIO)
+        int8_t d2;  // D2 Pin (GPIO)
+        int8_t d3;  // D3 Pin (GPIO)
+
+        constexpr SDCardConfig(int8_t clk_ = 14,
+                                 int8_t cmd_ = 15,
+                                 int8_t d0_ = 2,
+                                 int8_t d1_ = 4,
+                                 int8_t d2_ = 12,
+                                 int8_t d3_ = 13) noexcept
+            : clk(clk_), cmd(cmd_), d0(d0_), d1(d1_), d2(d2_), d3(d3_) {}
+    };
+
     static constexpr SPIBusConfig SPI_DEFAULT{};
+    static constexpr SDCardConfig SDCARD_DEFAULT{};
 
 } // namespace hardware
 
