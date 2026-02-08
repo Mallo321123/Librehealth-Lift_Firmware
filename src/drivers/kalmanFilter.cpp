@@ -1,44 +1,28 @@
-class KalmanFilter
+#include "kalman.h"
+
+KalmanFilter::KalmanFilter(const KalmanConfig& config)
 {
-    double x, p, Q, R;
+    Q = config.processNoise;
+    R = config.measurementNoise;
+    p = config.estimatedError;
+    x = config.initialValue;
+}
 
-private:
-    struct KalmanConfig
-    {
-        double processNoise;
-        double measurementNoise;
-        double estimatedError;
-        double initialValue;
-    };
+double KalmanFilter::update(double value)
+{
+    p = p + Q;
 
-public:
-    KalmanFilter(const KalmanConfig& config)
-    {
-        Q = config.processNoise;
-        R = config.measurementNoise;
-        p = config.estimatedError;
-        x = config.initialValue;
-    }
+    double y = value - x;
+    double s = p + R;
+    double k = p / s;
 
-    double update(double value)
-    {
-        p = p + Q;
+    x = x + k * y;
+    p = (1 - k) * p;
 
-        double y = value - x;
-        double s = p + R;
-        double k = p / s;
+    return x;
+}
 
-        x = x + k * y;
-        p = (1 - k) * p;
-
-        return x;
-    }
-
-    double current_value()
-    {
-        return x;
-    }
-
-    static constexpr KalmanConfig accel{0.1f, 0.5f, 1.0f, 0.0f};
-    static constexpr KalmanConfig gyro{0.1f, 0.5f, 1.0f, 0.0f};
-};
+double KalmanFilter::current_value()
+{
+    return x;
+}

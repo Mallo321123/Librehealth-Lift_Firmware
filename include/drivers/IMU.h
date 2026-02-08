@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <Adafruit_ISM330DHCX.h>
+#include "kalman.h"
+#include "hardware-reference.h"
 
 namespace imu
 {
@@ -14,14 +16,16 @@ namespace imu
         lsm6ds_data_rate_t la_odr;
         lsm6ds_data_rate_t gyro_odr;
 
-        float autorange_acc_overhead = 1.2f; // Multiplier for autorange calibration
+        float autorange_acc_overhead = 1.2f;  // Multiplier for autorange calibration
         float autorange_gyro_overhead = 1.2f; // Multiplier for autorange calibration
 
         bool accel = true;
         bool gyro = true;
 
-        bool accelKalman = false;
-        bool gyroKalman = false;
+        bool accelKalman = true;
+        bool gyroKalman = true;
+
+        int32_t range_calibration_update_interval = 100; // in microseconds
 
         constexpr IMUConfig(lsm6ds_accel_range_t la_fs_ = LSM6DS_ACCEL_RANGE_8_G,
                             lsm6ds_gyro_range_t gyro_fs_ = LSM6DS_GYRO_RANGE_2000_DPS,
@@ -56,7 +60,8 @@ namespace imu
     {
         Uninitialized,
         Initialized,
-        Ready
+        Ready,
+        Running
     };
 
     struct IMUReport
@@ -68,8 +73,16 @@ namespace imu
         double gyroX;
         double gyroY;
         double gyroZ;
-    };
 
+        IMUReport operator-(const IMUReport &other) const
+        {
+            return IMUReport{
+                accX - other.accX,
+                accY - other.accY,
+                accZ - other.accZ,
+            };
+        }
+    };
 
     struct DatarateMapItem
     {
@@ -107,5 +120,49 @@ namespace imu
     static constexpr IMUConfig IMU_DEFAULT{};
 
 }
+
+class IMUSensor
+{
+    Adafruit_ISM330DHCX ism330dhcx;
+    imu::State state = imu::State::Uninitialized;
+    imu::IMUConfig config = imu::IMUConfig{};
+
+    imu::IMUReport report{};
+    double gravityOffsetX = 0.0, gravityOffsetY = 0.0, gravityOffsetZ = 0.0;
+    bool calibrated = false;
+
+    KalmanFilter kalmanAccX{KalmanFilter::accel};
+    KalmanFilter kalmanAccY{KalmanFilter::accel};
+    KalmanFilter kalmanAccZ{KalmanFilter::accel};
+
+    KalmanFilter kalmanGyroX{KalmanFilter::gyro};
+    KalmanFilter kalmanGyroY{KalmanFilter::gyro};
+    KalmanFilter kalmanGyroZ{KalmanFilter::gyro};
+
+    SemaphoreHandle_t reportMutex = nullptr;
+    SemaphoreHandle_t configMutex = nullptr;
+
+    TaskHandle_t valueTaskHandle = nullptr;
+    TaskHandle_t autorangeTaskHandle = nullptr;
+
+    uint update_intervall = 10; // in milliseconds
+
+    void applyConfig();
+    static void valueUpdateTask(void *pvParameters);
+    static void autorangeCalibrationTask(void *pvParameters);
+    double mmToG(double mm_s2);
+    void calibrateGravity(int samples = 100);
+
+public:
+    bool debug = false;
+
+    IMUSensor();
+    bool begin(hardware::SPIBusConfig spiConfig = hardware::SPI_DEFAULT);
+    bool suspend();
+    bool resume(hardware::SPIBusConfig spiConfig = hardware::SPI_DEFAULT);
+    bool start();
+    void stop();
+    imu::IMUReport getReport();
+};
 
 #endif // IMU_H

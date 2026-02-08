@@ -41,8 +41,21 @@ namespace hardware
             : clk(clk_), cmd(cmd_), d0(d0_), d1(d1_), d2(d2_), d3(d3_) {}
     };
 
+    struct baro
+    {
+        int8_t sda; // SDA Pin (GPIO)
+        int8_t scl; // SCL Pin (GPIO)
+        int8_t address; // I2C Adresse
+
+        constexpr baro(int8_t sda_ = 8,
+                       int8_t scl_ = 9,
+                       int8_t address_ = 0x77) noexcept
+            : sda(sda_), scl(scl_), address(address_) {}
+    };
+
     static constexpr SPIBusConfig SPI_DEFAULT{};
     static constexpr SDCardConfig SDCARD_DEFAULT{};
+    static constexpr baro BARO_DEFAULT{};
 
 } // namespace hardware
 

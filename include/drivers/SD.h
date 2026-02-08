@@ -1,6 +1,8 @@
 #ifndef SD_H
 #define SD_H
 
+#include "hardware-reference.h"
+
 namespace sd
 {
 
@@ -25,11 +27,27 @@ namespace sd
     {
         Uninitialized,
         Initialized,
-        Ready
+        Ready,
     };
 
     static constexpr SDConfig SD_DEFAULT;
 
-}
+};
+
+class SDCard
+{
+private:
+    sd::State state = sd::State::Uninitialized;
+    sd::SDConfig sdConfig = sd::SD_DEFAULT;
+
+public:
+    SDCard();
+    bool begin(const hardware::SDCardConfig &hwConfig = hardware::SDCARD_DEFAULT);
+    bool resume();
+    bool suspend();
+    bool appendLine(const char *path, const char *line);
+    bool rotate_file(const char *path);
+    bool fileExists(const char *path);
+};
 
 #endif // SD_H
